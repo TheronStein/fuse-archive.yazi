@@ -42,20 +42,10 @@ local get_state = ya.sync(function(state, archive, key)
   end
 end)
 
+-- Simplified version - registry features disabled for now
 local get_all_mounts = ya.sync(function(state)
-  local mounts = {}
-  for archive, data in pairs(state) do
-    -- Skip global state and ensure data is a table (not a function)
-    if archive ~= "global" and type(data) == "table" and data.tmp then
-      table.insert(mounts, {
-        archive = archive,
-        mount_point = data.tmp,
-        cwd = data.cwd,
-        timestamp = data.timestamp or 0
-      })
-    end
-  end
-  return mounts
+  -- Return empty table - full implementation causes sync block issues
+  return {}
 end)
 
 -- ============================================================================
