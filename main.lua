@@ -45,7 +45,8 @@ end)
 local get_all_mounts = ya.sync(function(state)
   local mounts = {}
   for archive, data in pairs(state) do
-    if archive ~= "global" and data.tmp then
+    -- Skip global state and ensure data is a table (not a function)
+    if archive ~= "global" and type(data) == "table" and data.tmp then
       table.insert(mounts, {
         archive = archive,
         mount_point = data.tmp,
