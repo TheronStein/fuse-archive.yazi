@@ -299,73 +299,40 @@ local function do_mount(file)
   -- Store mount state
   set_state(tmp_file_name, "cwd", current_dir())
   set_state(tmp_file_name, "tmp", tmp_file_path)
-  set_state(tmp_file_name, "timestamp", os.time())
-  set_state(tmp_file_name, "archive_name", file)
 
-  -- Save to registry
-  save_registry()
-
-  info("Mounted: %s", file)
-
-  -- Emit integration hook
-  ya.emit("plugin", { "disk-ops", args = {"mount_event", tmp_file_path, file} })
-
-  ya.emit("cd", { tmp_file_path })
-  ya.emit("enter", {})
+  ya.manager_emit("cd", { tmp_file_path })
+  ya.manager_emit("enter", {})
 end
 
 local function do_unmount()
   if not is_mount_point() then
-    ya.emit("leave", {})
+    ya.manager_emit("leave", {})
     return
   end
 
   local file = current_dir_name()
   local tmp_file = get_state(file, "tmp")
-  local archive_name = get_state(file, "archive_name")
 
   if not tmp_file then
-    warn("Not in a mounted archive")
-    ya.emit("leave", {})
+    ya.manager_emit("leave", {})
     return
   end
 
-  info("Unmounting %s...", archive_name or file)
-
-  -- Navigate back first
+  -- Navigate back to original location
   local original_cwd = get_state(file, "cwd")
   if original_cwd then
-    ya.emit("cd", { original_cwd })
-  else
-    ya.emit("leave", {})
+    ya.manager_emit("cd", { original_cwd })
   end
 
-  -- Unmount using fusermount
-  local ret_code = run_command(shell, { "-c", "fusermount -u " .. ya.quote(tmp_file) .. " 2>/dev/null || fusermount3 -u " .. ya.quote(tmp_file) })
-  if ret_code ~= 0 then
-    warn("fusermount failed, trying lazy unmount")
-    ret_code = run_command(shell, { "-c", "fusermount -uz " .. ya.quote(tmp_file) .. " 2>/dev/null || fusermount3 -uz " .. ya.quote(tmp_file) })
-  end
+  -- Unmount using fusermount (best effort, don't fail if it doesn't work)
+  local ret_code = run_command(shell, { "-c", "fusermount -u " .. ya.quote(tmp_file) .. " 2>/dev/null || fusermount3 -u " .. ya.quote(tmp_file) .. " 2>/dev/null || true" })
 
-  -- Clean up mount directory
-  local deleted, _ = os.remove(tmp_file)
-  if not deleted then
-    os.execute("rmdir " .. ya.quote(tmp_file) .. " 2>/dev/null")
-  end
+  -- Try to clean up mount directory
+  os.execute("rmdir " .. ya.quote(tmp_file) .. " 2>/dev/null || true")
 
   -- Clear state
   set_state(file, "tmp", nil)
   set_state(file, "cwd", nil)
-  set_state(file, "timestamp", nil)
-  set_state(file, "archive_name", nil)
-
-  -- Save to registry
-  save_registry()
-
-  info("Unmounted: %s", archive_name or file)
-
-  -- Emit integration hook
-  ya.emit("plugin", { "disk-ops", args = {"unmount_event", tmp_file} })
 end
 
 -- ============================================================================
