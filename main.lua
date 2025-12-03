@@ -351,9 +351,11 @@ return {
       local file = current_file()
       if file == nil then
         -- No file hovered, just perform regular enter
+        ya.notify({ title = "fuse-archive", content = "No file hovered, entering...", timeout = 2, level = "info" })
         do_enter()
         return
       end
+      ya.notify({ title = "fuse-archive", content = "Attempting to mount: " .. file, timeout = 2, level = "info" })
       do_mount(file)
     end
 
