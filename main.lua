@@ -392,7 +392,9 @@ local function setup(_, opts)
   end
 
   -- Clean up any stale mounts on startup
-  cleanup_stale_mounts()
+  -- NOTE: Disabled due to io.popen issues in yazi plugin context
+  -- User can manually run: :plugin fuse-archive --args=cleanup
+  -- cleanup_stale_mounts()
 end
 
 -- ============================================================================
