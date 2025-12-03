@@ -143,27 +143,9 @@ local current_dir_name = ya.sync(function()
   return cx.active.current.cwd:name()
 end)
 
-local enter = ya.sync(function(state)
-  local h = cx.active.current.hovered
-  if not h then
-    return nil
-  end
-
-  local should_open = not h.cha.is_dir and state.smart_enter
-  return { is_dir = h.cha.is_dir, should_open = should_open }
-end)
-
+-- Direct implementation without weak ya.sync functions
 local function do_enter()
-  local info_data = enter()
-  if not info_data then
-    return
-  end
-
-  if info_data.should_open then
-    ya.emit("open", { hovered = true })
-  else
-    ya.emit("enter", {})
-  end
+  ya.manager_emit("enter", {})
 end
 
 -- ============================================================================
