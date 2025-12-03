@@ -42,11 +42,10 @@ local get_state = ya.sync(function(state, archive, key)
   end
 end)
 
--- Simplified version - registry features disabled for now
-local get_all_mounts = ya.sync(function(state)
-  -- Return empty table - full implementation causes sync block issues
-  return {}
-end)
+-- Registry features completely removed - causes sync block issues
+-- local get_all_mounts = ya.sync(function(state)
+--   return {}
+-- end)
 
 -- ============================================================================
 -- MOUNT REGISTRY PERSISTENCE
